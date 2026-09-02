@@ -14,12 +14,11 @@ export async function loginVoter(nis, token) {
   const { data, error } = await supabase.from('voters').select('nis,token_hash,has_voted').eq('nis', nis).single();
   if (error || !data) return { ok:false, msg:'NIS tidak ditemukan' };
   if (data.has_voted) return { ok:false, msg:'Anda sudah memilih. Tidak bisa vote lagi.' };
-  // For MVP, token_hash is plain token stored as text for simplicity; in prod use bcrypt compare via RPC
   // Check is_open
   const { data: cfg } = await supabase.from('election_config').select('is_open').eq('id',1).single();
   if (!cfg?.is_open) return { ok:false, msg:'Voting belum dibuka panitia' };
-  // Verify token (simple compare; seed will store plain for dev, later hash)
-  if (data.token_hash !== token) return { ok:false, msg:'Token salah' };
+  // Token check: skip if empty (onsite voting monitored by OSIS)
+  if (token && data.token_hash !== token) return { ok:false, msg:'Token salah' };
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem('voter_nis', nis);
     sessionStorage.setItem('voter_fp', deviceFingerprint());

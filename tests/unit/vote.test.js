@@ -10,8 +10,8 @@ describe('castVote', () => {
     const mockRpc = vi.fn().mockResolvedValue({ data:{ok:false, msg:'Sudah memilih (duplicate)'}, error:null });
     vi.doMock('../../src/js/supabase.js', () => ({ supabase:{ rpc: mockRpc, from: vi.fn() } }));
     const { castVote } = await import('../../src/js/vote.js');
-    const res = await castVote('123','fp',1);
-    expect(mockRpc).toHaveBeenCalledWith('cast_vote', expect.objectContaining({ p_candidate_id:1 }));
+    const res = await castVote('123', 1);
+    expect(mockRpc).toHaveBeenCalledWith('cast_vote', expect.objectContaining({ p_candidate_id:1, p_nis:'123' }));
     expect(res.ok).toBe(false);
   });
 
