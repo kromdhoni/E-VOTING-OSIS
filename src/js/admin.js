@@ -54,8 +54,10 @@ if (typeof document !== 'undefined') {
     }
   });
 
+  let editMode = false;
   async function refresh() {
     try {
+      const scrollY = window.scrollY;
       const { data:cfg, error } = await supabase.from('election_config').select('is_open').eq('id',1).single();
       const statusEl = document.getElementById('status');
       const timeEl = document.getElementById('status-time');
@@ -128,6 +130,7 @@ if (typeof document !== 'undefined') {
 
       // Candidate list
       await loadCandidateList();
+      if (!editMode) window.scrollTo(0, scrollY);
     } catch(e) { console.error('Refresh failed:', e); }
   }
 
@@ -191,6 +194,7 @@ if (typeof document !== 'undefined') {
     const { data: cands } = await supabase.from('candidates').select('*').order('nomor_urut');
     const list = document.getElementById('cand-list');
     if (!list || !cands) return;
+    const scrollPos = list.scrollTop;
     list.innerHTML = cands.map(c => `
       <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl group">
         <img src="${c.foto_url || '/src/assets/placeholder.webp'}" class="w-12 h-12 rounded-lg object-cover border border-slate-100"/>
@@ -202,12 +206,14 @@ if (typeof document !== 'undefined') {
         <button data-delete="${c.id}" class="cand-delete text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-red-200 transition-colors">Hapus</button>
       </div>
     `).join('');
+    list.scrollTop = scrollPos;
   }
 
   document.getElementById('cand-list')?.addEventListener('click', async e => {
     const editBtn = e.target.closest('.cand-edit');
     const deleteBtn = e.target.closest('.cand-delete');
     if (editBtn) {
+      editMode = true;
       const c = JSON.parse(editBtn.dataset.edit);
       document.getElementById('cand-edit-id').value = c.id;
       document.querySelector('#cand-form [name="nomor_urut"]').value = c.nomor_urut;
@@ -231,6 +237,7 @@ if (typeof document !== 'undefined') {
   });
 
   document.getElementById('cand-cancel-edit')?.addEventListener('click', () => {
+    editMode = false;
     document.getElementById('cand-edit-id').value = '';
     document.getElementById('cand-form').reset();
     document.getElementById('cand-submit-btn').textContent = 'Simpan Kandidat';
@@ -317,6 +324,7 @@ if (typeof document !== 'undefined') {
       if (error) alert('Error: '+error.message);
       else { alert('Kandidat disimpan'); e.target.reset(); selectedPhoto = null; photoPreview.classList.add('hidden'); refresh(); }
     }
+    editMode = false;
   });
 
   document.getElementById('show-results')?.addEventListener('click', async ()=>{
