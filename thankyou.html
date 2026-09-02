@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="id"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Terima Kasih</title><link href="/src/css/input.css" rel="stylesheet"/></head>
+<body class="bg-green-50 flex items-center justify-center min-h-screen">
+  <div class="bg-white p-8 rounded shadow text-center max-w-sm">
+    <div class="text-4xl">✅</div>
+    <h1 class="text-2xl font-bold mt-2">Terima Kasih Sudah Memilih!</h1>
+    <p class="text-sm text-slate-600 mt-2">Kode bukti (anonim):</p>
+    <div id="code" class="font-mono bg-slate-100 p-2 rounded mt-1"></div>
+    <p class="text-xs text-slate-500 mt-2">Simpan kode ini. Hasil akan diumumkan setelah voting ditutup.</p>
+    <button onclick="sessionStorage.clear();location.href='index.html'" class="mt-4 bg-slate-800 text-white px-6 py-2 rounded">Logout - Device Siap</button>
+  </div>
+  <script>document.getElementById('code').textContent = sessionStorage.getItem('thank_code')||'-';</script>
+</body></html>
