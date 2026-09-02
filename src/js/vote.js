@@ -163,6 +163,11 @@ if (isBrowser) {
     }, 2500);
   });
 
+  document.getElementById('btn-logout')?.addEventListener('click', () => {
+    sessionStorage.clear();
+    location.reload();
+  });
+
   /* ── Auto-init: if NIS already in sessionStorage (from index.html login), skip NIS form ── */
   (async () => {
     const existingNis = sessionStorage.getItem('voter_nis');
