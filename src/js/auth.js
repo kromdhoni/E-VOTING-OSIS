@@ -1,2 +1,48 @@
-// src/js/auth.js - stub for Task 1, full impl in Task 2
-console.log('auth stub');
+import { supabase } from './supabase.js';
+import { deviceFingerprint } from './utils.js';
+
+export async function loginVoter(nis, token) {
+  // Fetch voter
+  const { data, error } = await supabase.from('voters').select('nis,token_hash,has_voted').eq('nis', nis).single();
+  if (error || !data) return { ok:false, msg:'NIS tidak ditemukan' };
+  if (data.has_voted) return { ok:false, msg:'Anda sudah memilih. Tidak bisa vote lagi.' };
+  // For MVP, token_hash is plain token stored as text for simplicity; in prod use bcrypt compare via RPC
+  // Check is_open
+  const { data: cfg } = await supabase.from('election_config').select('is_open').eq('id',1).single();
+  if (!cfg?.is_open) return { ok:false, msg:'Voting belum dibuka panitia' };
+  // Verify token (simple compare; seed will store plain for dev, later hash)
+  if (data.token_hash !== token) return { ok:false, msg:'Token salah' };
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('voter_nis', nis);
+    sessionStorage.setItem('voter_fp', deviceFingerprint());
+  }
+  // Audit
+  await supabase.from('audit_log').insert({ action:'login_success', voter_nis: nis, meta:{ fp: deviceFingerprint() } });
+  // Auto-logout 2 menit (device bergantian)
+  setTimeout(()=>logout(), 2*60*1000);
+  return { ok:true };
+}
+export async function checkHasVoted(nis) {
+  const { data } = await supabase.from('voters').select('has_voted').eq('nis', nis).single();
+  return !!data?.has_voted;
+}
+export function logout() {
+  if (typeof sessionStorage !== 'undefined') sessionStorage.clear();
+  if (typeof location !== 'undefined') location.href = 'index.html';
+}
+export function requireLogin() {
+  if (typeof sessionStorage === 'undefined') return;
+  if (!sessionStorage.getItem('voter_nis') && typeof location !== 'undefined') location.href = 'index.html';
+}
+// Wire form (guard for non-browser env like vitest)
+if (typeof document !== 'undefined') {
+  document.getElementById('login-form')?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const nis = document.getElementById('nis').value.trim();
+    const token = document.getElementById('token').value.trim();
+    const res = await loginVoter(nis, token);
+    const err = document.getElementById('error');
+    if (!res.ok) { err.textContent=res.msg; err.classList.remove('hidden'); }
+    else { location.href = 'vote.html'; }
+  });
+}
