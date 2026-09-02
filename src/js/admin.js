@@ -220,7 +220,6 @@ if (typeof document !== 'undefined') {
       }
       document.getElementById('cand-submit-btn').textContent = 'Update Kandidat';
       document.getElementById('cand-cancel-edit').classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     if (deleteBtn) {
       const id = deleteBtn.dataset.delete;
