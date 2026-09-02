@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#064e3b"/>
   <title>Admin — E-Voting OSIS</title>
   <link href="/src/css/input.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
 <body class="bg-slate-50 min-h-screen">
   <div class="max-w-6xl mx-auto px-4 py-6">
@@ -74,6 +75,48 @@
         </div>
       </div>
 
+      <!-- Live Count -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl shadow-card border border-slate-100 p-4 text-center">
+          <div class="text-3xl font-extrabold text-brand-600" id="live-total">0</div>
+          <div class="text-xs text-slate-400 mt-1 font-semibold">Total Pemilih</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-card border border-slate-100 p-4 text-center">
+          <div class="text-3xl font-extrabold text-emerald-600" id="live-voted">0</div>
+          <div class="text-xs text-slate-400 mt-1 font-semibold">Sudah Memilih</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-card border border-slate-100 p-4 text-center">
+          <div class="text-3xl font-extrabold text-amber-600" id="live-remaining">0</div>
+          <div class="text-xs text-slate-400 mt-1 font-semibold">Belum Memilih</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-card border border-slate-100 p-4 text-center">
+          <div class="text-3xl font-extrabold text-purple-600" id="live-pct">0%</div>
+          <div class="text-xs text-slate-400 mt-1 font-semibold">Partisipasi</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section class="section-card">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            </div>
+            <h2 class="font-bold text-slate-800">Partisipasi per Kelas</h2>
+          </div>
+          <canvas id="chart-participation" height="200"></canvas>
+        </section>
+        <section class="section-card">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+            </div>
+            <h2 class="font-bold text-slate-800">Suara per Kandidat</h2>
+          </div>
+          <canvas id="chart-votes" height="200"></canvas>
+        </section>
+      </div>
+
       <!-- Two Column Layout -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Candidates Section -->
@@ -85,6 +128,7 @@
             <h2 class="font-bold text-slate-800">Kandidat</h2>
           </div>
           <form id="cand-form" class="space-y-3">
+            <input id="cand-edit-id" type="hidden" value=""/>
             <div class="grid grid-cols-2 gap-3">
               <input name="nomor_urut" type="number" placeholder="No. Urut" class="input-field" required/>
               <input name="nama_ketua" placeholder="Nama Ketua" class="input-field" required/>
@@ -101,7 +145,10 @@
               <button type="button" id="cand-photo-remove" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md">&times;</button>
             </div>
             <textarea name="visi" placeholder="Visi kandidat..." class="input-field min-h-[80px] resize-none"></textarea>
-            <button class="btn-primary w-full text-sm">Simpan Kandidat</button>
+            <div class="flex gap-2">
+              <button type="submit" id="cand-submit-btn" class="btn-primary flex-1 text-sm">Simpan Kandidat</button>
+              <button type="button" id="cand-cancel-edit" class="btn-secondary text-sm hidden">Batal</button>
+            </div>
           </form>
           <div id="cand-list" class="mt-4 space-y-2"></div>
         </section>
@@ -154,7 +201,6 @@
             Buka Hasil & Cetak PDF
           </button>
         </div>
-        <canvas id="chart" class="mt-4 hidden"></canvas>
         <div id="results" class="mt-4 space-y-3"></div>
       </section>
     </div>
