@@ -1,0 +1,21 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E-Voting OSIS SMK YPM 14</title>
+  <link href="/src/css/input.css" rel="stylesheet" />
+</head>
+<body class="bg-slate-50">
+  <main id="app" class="min-h-screen flex items-center justify-center">
+    <form id="login-form" class="bg-white p-6 rounded shadow w-full max-w-sm">
+      <h1 class="text-xl font-bold mb-4">Login Voter</h1>
+      <input id="nis" placeholder="NIS" class="border p-2 w-full mb-2" required />
+      <input id="token" placeholder="Token 6 digit" class="border p-2 w-full mb-4" required />
+      <button type="submit" class="bg-blue-600 text-white w-full py-2 rounded">Masuk</button>
+      <p id="error" class="text-red-600 text-sm mt-2 hidden"></p>
+    </form>
+  </main>
+  <script type="module" src="/src/js/auth.js"></script>
+</body>
+</html>
