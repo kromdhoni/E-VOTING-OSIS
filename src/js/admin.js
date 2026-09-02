@@ -1,7 +1,5 @@
 import { supabase } from './supabase.js';
 import { parseCSV, generateToken } from './utils.js';
-import * as XLSX from 'xlsx';
-const { utils, booknew, bookappendsheet, writeFile } = XLSX;
 
 const ADMIN_PASSWORD = 'SMK14ADMIN';
 let chartParticipation = null;
@@ -31,10 +29,17 @@ export async function getParticipation() {
 export async function exportExcel() {
   const { data: voters } = await supabase.from('voters').select('nis, nama, kelas, has_voted');
   const safe = voters || [];
-  const worksheet = utils.json_to_sheet(safe.map(v=>({ NIS: v.nis, Nama: v.nama, Kelas: v.kelas, 'Status Vote': v.has_voted ? 'Sudah Memilih' : 'Belum Memilih' })));
-  const workbook = booknew();
-  bookappendsheet(workbook, worksheet, 'Data Akun');
-  writeFile(workbook, 'data_akun_siswa.xlsx');
+  // Buat CSV content
+  const headers = ['NIS', 'Nama', 'Kelas', 'Status Vote'];
+  const rows = safe.map(v=>[v.nis, v.nama, v.kelas, v.has_voted ? 'Sudah Memilih' : 'Belum Memilih']);
+  const csvContent = [headers, ...rows].map(row=>row.map(cell=>`'${cell}'`).join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'data_akun_siswa.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 export async function getLiveVoteCount() {
   const { data: votes } = await supabase.from('votes').select('candidate_id');
