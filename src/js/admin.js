@@ -322,26 +322,16 @@ if (typeof document !== 'undefined') {
 
   document.getElementById('show-results')?.addEventListener('click', async ()=>{
     try {
-      const { getResults, exportPDF } = await import('./results.js');
-      const res = await getResults();
-      document.getElementById('results').innerHTML = res.map(r=>`
-        <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
-          <div class="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center font-bold text-brand-700">0${r.nomor}</div>
-          <div class="flex-1">
-            <div class="font-semibold text-sm">${r.nama}</div>
-            <div class="text-xs text-slate-400">${r.count} suara (${r.percent}%)</div>
-          </div>
-          <div class="h-3 bg-slate-200 rounded-full flex-1 max-w-[200px] overflow-hidden">
-            <div class="h-full bg-brand-500 rounded-full" style="width:${r.percent}%"></div>
-          </div>
-        </div>
-      `).join('');
-      const blob=await exportPDF(res);
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='hasil-osis.pdf';
-      a.textContent='Download PDF';
-      a.className='btn-primary inline-block mt-4 text-sm';
+      const { getResults, formatResultsHTML, exportText } = await import('./results.js');
+      const data = await getResults();
+      document.getElementById('results').innerHTML = formatResultsHTML(data);
+      const text = exportText(data);
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'hasil-osis.txt';
+      a.textContent = 'Download Hasil (TXT)';
+      a.className = 'btn-primary inline-block mt-4 text-sm';
       document.getElementById('results').appendChild(a);
     } catch(e){ alert(e.message); }
   });
