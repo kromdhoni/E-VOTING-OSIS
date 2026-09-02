@@ -46,4 +46,13 @@ if (typeof document !== 'undefined') {
     e.preventDefault(); const fd=new FormData(e.target); const payload=Object.fromEntries(fd); payload.nomor_urut=Number(payload.nomor_urut);
     await supabase.from('candidates').insert(payload); alert('Kandidat disimpan'); e.target.reset();
   });
+  document.getElementById('show-results')?.addEventListener('click', async ()=>{
+    try {
+      const { getResults, exportPDF } = await import('./results.js');
+      const res = await getResults();
+      document.getElementById('results').innerHTML = res.map(r=>`<div>Paslon 0${r.nomor} - ${r.nama}: <b>${r.count}</b> (${r.percent}%)</div>`).join('');
+      const chart=document.getElementById('chart'); chart.classList.remove('hidden');
+      const blob=await exportPDF(res); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='hasil-osis.pdf'; a.textContent='Download PDF'; document.getElementById('results').appendChild(a);
+    } catch(e){ alert(e.message); }
+  });
 }
