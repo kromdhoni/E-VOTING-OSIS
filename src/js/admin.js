@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js';
 import { parseCSV, generateToken } from './utils.js';
+import * as XLSX from 'xlsx';
 
 const ADMIN_PASSWORD = 'SMK14ADMIN';
 let chartParticipation = null;
@@ -19,11 +20,20 @@ export async function toggleElection(isOpen) {
   return { isOpen };
 }
 export async function getParticipation() {
-  const { data } = await supabase.from('voters').select('kelas, has_voted, nama, nis');
+  const { data } = await supabase.from('voters').select('kelas, has_voted');
   const safe = data || [];
   const total=safe.length, voted=safe.filter(v=>v.has_voted).length;
   const perKelas={}; safe.forEach(v=>{ perKelas[v.kelas]=perKelas[v.kelas]||{total:0,voted:0}; perKelas[v.kelas].total++; if(v.has_voted) perKelas[v.kelas].voted++; });
-  return { total, voted, perKelas, voters: safe };
+  return { total, voted, perKelas };
+}
+
+export async function exportExcel() {
+  const { data: voters } = await supabase.from('voters').select('nis, nama, kelas, has_voted');
+  const safe = voters || [];
+  const worksheet = XLSX.utils.json_to_sheet(safe.map(v=>({ NIS: v.nis, Nama: v.nama, Kelas: v.kelas, 'Status Vote': v.has_voted ? 'Sudah Memilih' : 'Belum Memilih' })));
+  const workbook = XLSX.utils.book_new();
+  XLSX.book_append_sheet(workbook, worksheet, 'Data Akun');
+  XLSX.writeFile(workbook, 'data_akun_siswa.xlsx');
 }
 export async function getLiveVoteCount() {
   const { data: votes } = await supabase.from('votes').select('candidate_id');
@@ -261,6 +271,9 @@ if (typeof document !== 'undefined') {
     document.getElementById('login-admin').classList.remove('hidden');
     document.getElementById('admin-pass').value = '';
     if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+  });
+  document.getElementById('export-excel')?.addEventListener('click', async ()=>{
+    await exportExcel();
   });
   document.getElementById('csv-file')?.addEventListener('change', async e=>{
     try {
