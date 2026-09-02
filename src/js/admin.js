@@ -29,13 +29,25 @@ export async function getParticipation() {
 export async function exportExcel() {
   const { data: voters } = await supabase.from('voters').select('nis, nama, kelas, has_voted');
   const safe = voters || [];
-  // Build CSV with proper quoting for Excel compatibility
-  const headers = ['NIS', 'Nama', 'Kelas', 'Status Vote'];
-  const rows = safe.map(v=>[v.nis, v.nama.replace(/,/g, ''), v.kelas, v.has_voted ? 'Sudah Memilih' : 'Belum Memilih']);
-  const csvContent = [headers, ...rows].map(row=>row.map(cell=>`"${cell}"`).join(',')).join('\n');
-  // Add UTF-8 BOM for Excel recognition
+  // Header
+  let csv = 'NIS,Nama,Kelas,Status Vote\r\n';
+  // Baris data
+  for (const v of safe) {
+    // Escape koma dan baris baru di dalam nama/kelas
+    const namaEscape = (v.nama || '').replace(/["\r\n]+/g, ' ');
+    const kelasEscape = (v.kelas || '').replace(/["\r\n]+/g, ' ');
+    const status = v.has_voted ? 'Sudah Memilih' : 'Belum Memilih';
+    // Quote fields jika ada koma atau karakter khusus
+    const quote = s => `"${s}"`;
+    const nisQ = quote(v.nis || '');
+    const namaQ = quote(namaEscape);
+    const kelasQ = quote(kelasEscape);
+    const statusQ = quote(status);
+    csv += `${nisQ},${namaQ},${kelasQ},${statusQ}\r\n`;
+  }
+  // UTF-8 BOM untuk Excel
   const bom = '\uFEFF';
-  const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;\r\n' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
