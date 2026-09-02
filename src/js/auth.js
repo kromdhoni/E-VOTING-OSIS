@@ -1,7 +1,15 @@
 import { supabase } from './supabase.js';
 import { deviceFingerprint } from './utils.js';
 
+const attempts={};
+export function checkRateLimit(ip) {
+  const now=Date.now(); attempts[ip]=attempts[ip]?.filter(t=>now-t<60000)||[];
+  if (attempts[ip].length>=5) return false;
+  attempts[ip].push(now); return true;
+}
+
 export async function loginVoter(nis, token) {
+  if (!checkRateLimit('client')) return { ok:false, msg:'Terlalu banyak percobaan, tunggu 1 menit' };
   // Fetch voter
   const { data, error } = await supabase.from('voters').select('nis,token_hash,has_voted').eq('nis', nis).single();
   if (error || !data) return { ok:false, msg:'NIS tidak ditemukan' };
