@@ -111,14 +111,54 @@ if (typeof document !== 'undefined') {
       refresh();
     } catch(err) { alert('Error: '+err.message); }
   });
+  let selectedPhoto = null;
+  const photoInput = document.getElementById('cand-photo');
+  const photoPreview = document.getElementById('cand-photo-preview');
+  const photoImg = document.getElementById('cand-photo-img');
+  const photoRemove = document.getElementById('cand-photo-remove');
+
+  photoInput?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2*1024*1024) { alert('Ukuran foto maks 2MB'); return; }
+    selectedPhoto = file;
+    photoImg.src = URL.createObjectURL(file);
+    photoPreview.classList.remove('hidden');
+  });
+
+  photoRemove?.addEventListener('click', () => {
+    selectedPhoto = null;
+    photoInput.value = '';
+    photoPreview.classList.add('hidden');
+  });
+
   document.getElementById('cand-form')?.addEventListener('submit', async e=>{
     e.preventDefault();
     const fd=new FormData(e.target);
-    const payload=Object.fromEntries(fd);
-    payload.nomor_urut=Number(payload.nomor_urut);
+    let fotoUrl = null;
+    if (selectedPhoto) {
+      const ext = selectedPhoto.name.split('.').pop();
+      const fileName = `paslon_${fd.get('nomor_urut')}_${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('candidate-photos').upload(fileName, selectedPhoto);
+      if (uploadErr) { alert('Gagal upload foto: '+uploadErr.message); return; }
+      const { data: urlData } = supabase.storage.from('candidate-photos').getPublicUrl(fileName);
+      fotoUrl = urlData.publicUrl;
+    }
+    const payload = {
+      nomor_urut: Number(fd.get('nomor_urut')),
+      nama_ketua: fd.get('nama_ketua'),
+      nama_wakil: fd.get('nama_wakil'),
+      visi: fd.get('visi'),
+      foto_url: fotoUrl,
+    };
     const {error}=await supabase.from('candidates').insert(payload);
     if(error) alert('Error: '+error.message);
-    else { alert('Kandidat disimpan'); e.target.reset(); }
+    else {
+      alert('Kandidat disimpan');
+      e.target.reset();
+      selectedPhoto = null;
+      photoPreview.classList.add('hidden');
+    }
   });
   document.getElementById('show-results')?.addEventListener('click', async ()=>{
     try {
