@@ -321,3 +321,4 @@ INSERT INTO voters (nis,nama,kelas,token_hash) VALUES ('0318','ZAKI NUZULUL AMRU
 INSERT INTO voters (nis,nama,kelas,token_hash) VALUES ('0319','ZYDAN AFRIAN GALIH W','XII TKRO 3','455784') ON CONFLICT (nis) DO NOTHING;
 INSERT INTO voters (nis,nama,kelas,token_hash) VALUES ('0320','DENIS JUNIAN SYAPUTRA','XII TKRO 3','939482') ON CONFLICT (nis) DO NOTHING;
 INSERT INTO voters (nis,nama,kelas,token_hash) VALUES ('0321','BAGUS SATRIA MAHARDIKA','XII TKRO 3','214576') ON CONFLICT (nis) DO NOTHING;
+INSERT INTO voters (nis,nama,kelas,token_hash) VALUES ('0272','IMAM SYAFI''I','XII TKRO 2','717024') ON CONFLICT (nis) DO NOTHING;
