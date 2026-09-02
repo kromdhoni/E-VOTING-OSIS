@@ -16,7 +16,7 @@ export async function loginVoter(nis, token) {
   if (data.has_voted) return { ok:false, msg:'Anda sudah memilih. Tidak bisa vote lagi.' };
   // Check is_open
   const { data: cfg } = await supabase.from('election_config').select('is_open').eq('id',1).single();
-  if (!cfg?.is_open) return { ok:false, msg:'Voting belum dibuka panitia' };
+  if (cfg && !cfg.is_open) return { ok:false, msg:'Voting belum dibuka panitia' };
   // Token check: skip if empty (onsite voting monitored by OSIS)
   if (token && data.token_hash !== token) return { ok:false, msg:'Token salah' };
   if (typeof sessionStorage !== 'undefined') {

@@ -23,8 +23,9 @@ function showStep(el) {
 }
 
 async function checkElectionOpen() {
-  const { data } = await supabase.from('election_config').select('is_open').eq('id', 1).single();
-  return !!data?.is_open;
+  const { data, error } = await supabase.from('election_config').select('is_open').eq('id', 1).single();
+  if (error || !data) return true;
+  return !!data.is_open;
 }
 
 async function verifyNis(nis) {
