@@ -35,19 +35,56 @@ if (typeof document !== 'undefined') {
     }
   });
   async function refresh() {
-    const { data:cfg }=await supabase.from('election_config').select('is_open').eq('id',1).single();
-    const statusEl = document.getElementById('status');
-    if (statusEl) statusEl.textContent = cfg?.is_open?'🟢 BUKA':'🔴 TUTUP';
-    const part=await getParticipation(); const partEl=document.getElementById('participation');
-    if (partEl) partEl.innerHTML=`Total: ${part.voted}/${part.total} (${Math.round(part.voted/part.total*100||0)}%)`+Object.entries(part.perKelas).map(([k,v])=>`<div>${k}: ${v.voted}/${v.total}</div>`).join('');
+    try {
+      const { data:cfg, error } = await supabase.from('election_config').select('is_open').eq('id',1).single();
+      const statusEl = document.getElementById('status');
+      const timeEl = document.getElementById('status-time');
+      if (error) { console.error('Refresh error:', error); return; }
+      if (statusEl) {
+        statusEl.textContent = cfg?.is_open ? '🟢 BUKA' : '🔴 TUTUP';
+        statusEl.className = cfg?.is_open
+          ? 'text-3xl font-extrabold mt-1 text-emerald-600'
+          : 'text-3xl font-extrabold mt-1 text-red-500';
+      }
+      if (timeEl) timeEl.textContent = 'Terakhir diubah: ' + new Date().toLocaleTimeString('id-ID');
+      const part = await getParticipation();
+      const partEl = document.getElementById('participation');
+      if (partEl) {
+        const pct = part.total ? Math.round(part.voted/part.total*100) : 0;
+        partEl.innerHTML = `
+          <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl mb-2">
+            <span class="text-sm font-medium text-slate-600">Total Pemilih</span>
+            <span class="font-bold text-slate-800">${part.voted} / ${part.total} (${pct}%)</span>
+          </div>
+          <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+            <div class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width:${pct}%"></div>
+          </div>
+          <div class="mt-3 space-y-1">
+            ${Object.entries(part.perKelas).map(([k,v])=>`
+              <div class="flex items-center justify-between text-xs p-2 rounded-lg hover:bg-slate-50">
+                <span class="font-medium text-slate-600">${k}</span>
+                <span class="text-slate-400">${v.voted}/${v.total}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+    } catch(e) { console.error('Refresh failed:', e); }
   }
   document.getElementById('btn-open')?.addEventListener('click', async ()=>{
-    await toggleElection(true);
+    const { error } = await supabase.from('election_config').update({ is_open:true, start_at: new Date().toISOString() }).eq('id',1);
+    if (error) { alert('Gagal buka: '+error.message); return; }
     await refresh();
   });
   document.getElementById('btn-close')?.addEventListener('click', async ()=>{
-    await toggleElection(false);
+    const { error } = await supabase.from('election_config').update({ is_open:false, end_at: new Date().toISOString() }).eq('id',1);
+    if (error) { alert('Gagal tutup: '+error.message); return; }
     await refresh();
+  });
+  document.getElementById('btn-logout')?.addEventListener('click', ()=>{
+    document.getElementById('panel').classList.add('hidden');
+    document.getElementById('login-admin').classList.remove('hidden');
+    document.getElementById('admin-pass').value = '';
   });
   document.getElementById('csv-file')?.addEventListener('change', async e=>{
     try {
