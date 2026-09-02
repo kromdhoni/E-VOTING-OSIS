@@ -39,12 +39,27 @@ if (typeof document !== 'undefined') {
       const { data:cfg, error } = await supabase.from('election_config').select('is_open').eq('id',1).single();
       const statusEl = document.getElementById('status');
       const timeEl = document.getElementById('status-time');
-      if (error) { console.error('Refresh error:', error); return; }
+      const btnOpen = document.getElementById('btn-open');
+      const btnClose = document.getElementById('btn-close');
+      const isOpen = error ? true : !!cfg?.is_open;
+      if (error) { console.error('Refresh error:', error); }
       if (statusEl) {
-        statusEl.textContent = cfg?.is_open ? '🟢 BUKA' : '🔴 TUTUP';
-        statusEl.className = cfg?.is_open
+        statusEl.textContent = isOpen ? '🟢 BUKA' : '🔴 TUTUP';
+        statusEl.className = isOpen
           ? 'text-3xl font-extrabold mt-1 text-emerald-600'
           : 'text-3xl font-extrabold mt-1 text-red-500';
+      }
+      if (btnOpen) {
+        btnOpen.className = isOpen
+          ? 'bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-md hover:shadow-glow active:scale-[0.98] flex items-center gap-2 cursor-default opacity-100'
+          : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold text-sm px-6 py-3 rounded-xl transition-all duration-200 hover:shadow-md active:scale-[0.98] flex items-center gap-2';
+        btnOpen.disabled = isOpen;
+      }
+      if (btnClose) {
+        btnClose.className = isOpen
+          ? 'bg-red-100 hover:bg-red-200 text-red-700 font-bold text-sm px-6 py-3 rounded-xl transition-all duration-200 hover:shadow-md active:scale-[0.98] flex items-center gap-2'
+          : 'bg-red-500 hover:bg-red-600 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-md hover:shadow-lg active:scale-[0.98] flex items-center gap-2 cursor-default opacity-100';
+        btnClose.disabled = !isOpen;
       }
       if (timeEl) timeEl.textContent = 'Terakhir diubah: ' + new Date().toLocaleTimeString('id-ID');
       const part = await getParticipation();
