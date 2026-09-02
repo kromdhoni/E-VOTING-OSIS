@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 import { parseCSV, generateToken } from './utils.js';
 import * as XLSX from 'xlsx';
+const { utils, booknew, bookappendsheet, writeFile } = XLSX;
 
 const ADMIN_PASSWORD = 'SMK14ADMIN';
 let chartParticipation = null;
@@ -30,10 +31,10 @@ export async function getParticipation() {
 export async function exportExcel() {
   const { data: voters } = await supabase.from('voters').select('nis, nama, kelas, has_voted');
   const safe = voters || [];
-  const worksheet = XLSX.utils.json_to_sheet(safe.map(v=>({ NIS: v.nis, Nama: v.nama, Kelas: v.kelas, 'Status Vote': v.has_voted ? 'Sudah Memilih' : 'Belum Memilih' })));
-  const workbook = XLSX.utils.book_new();
-  XLSX.book_append_sheet(workbook, worksheet, 'Data Akun');
-  XLSX.writeFile(workbook, 'data_akun_siswa.xlsx');
+  const worksheet = utils.json_to_sheet(safe.map(v=>({ NIS: v.nis, Nama: v.nama, Kelas: v.kelas, 'Status Vote': v.has_voted ? 'Sudah Memilih' : 'Belum Memilih' })));
+  const workbook = booknew();
+  bookappendsheet(workbook, worksheet, 'Data Akun');
+  writeFile(workbook, 'data_akun_siswa.xlsx');
 }
 export async function getLiveVoteCount() {
   const { data: votes } = await supabase.from('votes').select('candidate_id');
