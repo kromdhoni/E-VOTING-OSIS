@@ -29,11 +29,13 @@ export async function getParticipation() {
 export async function exportExcel() {
   const { data: voters } = await supabase.from('voters').select('nis, nama, kelas, has_voted');
   const safe = voters || [];
-  // Buat CSV content
+  // Build CSV with proper quoting for Excel compatibility
   const headers = ['NIS', 'Nama', 'Kelas', 'Status Vote'];
-  const rows = safe.map(v=>[v.nis, v.nama, v.kelas, v.has_voted ? 'Sudah Memilih' : 'Belum Memilih']);
-  const csvContent = [headers, ...rows].map(row=>row.map(cell=>`'${cell}'`).join(',')).join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const rows = safe.map(v=>[v.nis, v.nama.replace(/,/g, ''), v.kelas, v.has_voted ? 'Sudah Memilih' : 'Belum Memilih']);
+  const csvContent = [headers, ...rows].map(row=>row.map(cell=>`"${cell}"`).join(',')).join('\n');
+  // Add UTF-8 BOM for Excel recognition
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
