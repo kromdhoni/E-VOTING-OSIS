@@ -19,11 +19,11 @@ export async function toggleElection(isOpen) {
   return { isOpen };
 }
 export async function getParticipation() {
-  const { data } = await supabase.from('voters').select('kelas, has_voted');
+  const { data } = await supabase.from('voters').select('nis, nama, kelas, has_voted, voted_at');
   const safe = data || [];
   const total=safe.length, voted=safe.filter(v=>v.has_voted).length;
   const perKelas={}; safe.forEach(v=>{ perKelas[v.kelas]=perKelas[v.kelas]||{total:0,voted:0}; perKelas[v.kelas].total++; if(v.has_voted) perKelas[v.kelas].voted++; });
-  return { total, voted, perKelas };
+  return { total, voted, perKelas, voters: safe };
 }
 
 export async function exportExcel() {
@@ -68,6 +68,66 @@ export async function getLiveVoteCount() {
     nama: `${c.nama_ketua} & ${c.nama_wakil}`,
     count: counts[c.id] || 0,
   }));
+}
+
+let lastVoters = [];
+
+function getVoterFilters() {
+  if (typeof document === 'undefined') return { q: '', status: 'voted', kelas: '' };
+  return {
+    q: (document.getElementById('voter-search')?.value || '').trim().toLowerCase(),
+    status: document.getElementById('voter-filter')?.value || 'voted',
+    kelas: document.getElementById('voter-kelas')?.value || '',
+  };
+}
+
+export function filterVoters(voters, { q, status, kelas }) {
+  return (voters || []).filter(v => {
+    if (status === 'voted' && !v.has_voted) return false;
+    if (status === 'not' && v.has_voted) return false;
+    if (kelas && v.kelas !== kelas) return false;
+    if (q && !(`${v.nis||''} ${(v.nama||'').toLowerCase()}`.includes(q))) return false;
+    return true;
+  }).sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+}
+
+function syncKelasFilter(voters) {
+  const sel = typeof document !== 'undefined' ? document.getElementById('voter-kelas') : null;
+  if (!sel) return;
+  const current = sel.value;
+  const kelasList = [...new Set((voters || []).map(v => v.kelas).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Semua kelas</option>' + kelasList.map(k => `<option value="${k}">${k}</option>`).join('');
+  if (kelasList.includes(current)) sel.value = current;
+}
+
+function renderVoterList() {
+  const box = typeof document !== 'undefined' ? document.getElementById('voter-list') : null;
+  if (!box) return;
+  const scrollPos = box.scrollTop;
+  const filters = getVoterFilters();
+  const rows = filterVoters(lastVoters, filters);
+  const votedCount = lastVoters.filter(v => v.has_voted).length;
+  const countEl = document.getElementById('voter-count');
+  if (countEl) countEl.textContent = `Menampilkan ${rows.length} dari ${lastVoters.length} siswa (${votedCount} sudah memilih)`;
+  box.innerHTML = rows.length ? `<table class="w-full text-sm"><thead class="sticky top-0 bg-white"><tr class="border-b border-slate-200"><th class="text-left py-2 px-3 font-semibold text-slate-500">NIS</th><th class="text-left py-2 px-3 font-semibold text-slate-500">Nama</th><th class="text-left py-2 px-3 font-semibold text-slate-500">Kelas</th><th class="text-left py-2 px-3 font-semibold text-slate-500">Waktu Memilih</th><th class="text-center py-2 px-3 font-semibold text-slate-500">Status</th></tr></thead><tbody>${rows.map(v=>`<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="py-2 px-3 font-mono">${v.nis}</td><td class="py-2 px-3 font-medium text-slate-700">${v.nama}</td><td class="py-2 px-3">${v.kelas}</td><td class="py-2 px-3 text-xs text-slate-400">${v.has_voted && v.voted_at ? new Date(v.voted_at).toLocaleString('id-ID') : '—'}</td><td class="py-2 px-3 text-center">${v.has_voted ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">Sudah memilih</span>' : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-400">Belum</span>'}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="text-center text-sm text-slate-400 py-8">Tidak ada data yang cocok dengan filter.</p>';
+  box.scrollTop = scrollPos;
+}
+
+export function exportVoterList() {
+  const rows = filterVoters(lastVoters, getVoterFilters());
+  let csv = 'NIS,Nama,Kelas,Status,Waktu Memilih\r\n';
+  for (const v of rows) {
+    const q = s => `"${String(s ?? '').replace(/["\r\n]+/g, ' ')}"`;
+    csv += `${q(v.nis)},${q(v.nama)},${q(v.kelas)},${q(v.has_voted ? 'Sudah Memilih' : 'Belum Memilih')},${q(v.has_voted && v.voted_at ? new Date(v.voted_at).toLocaleString('id-ID') : '-')}\r\n`;
+  }
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'daftar_siswa_sudah_memilih.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // Wire UI
@@ -148,11 +208,16 @@ if (typeof document !== 'undefined') {
       }
 
       // Voter list (who voted / who didn't)
+      lastVoters = part.voters || [];
       const voterTable = document.getElementById('voter-table');
-      if (voterTable && part.voters) {
-        const sorted = [...part.voters].sort((a,b) => a.nama.localeCompare(b.nama));
+      if (voterTable) {
+        const scrollPos = voterTable.scrollTop;
+        const sorted = [...lastVoters].sort((a,b) => (a.nama||'').localeCompare(b.nama||''));
         voterTable.innerHTML = `<table class="w-full"><thead><tr class="border-b border-slate-100"><th class="text-left py-1 px-2 font-semibold text-slate-500">NIS</th><th class="text-left py-1 px-2 font-semibold text-slate-500">Nama</th><th class="text-left py-1 px-2 font-semibold text-slate-500">Kelas</th><th class="text-center py-1 px-2 font-semibold text-slate-500">Status</th></tr></thead><tbody>${sorted.map(v=>`<tr class="border-b border-slate-50"><td class="py-1 px-2 font-mono">${v.nis}</td><td class="py-1 px-2">${v.nama}</td><td class="py-1 px-2">${v.kelas}</td><td class="py-1 px-2 text-center">${v.has_voted ? '<span class="text-emerald-600 font-semibold">✓</span>' : '<span class="text-slate-300">—</span>'}</td></tr>`).join('')}</tbody></table>`;
+        voterTable.scrollTop = scrollPos;
       }
+      syncKelasFilter(lastVoters);
+      renderVoterList();
 
       // Charts
       updateParticipationChart(part.perKelas);
@@ -295,6 +360,10 @@ if (typeof document !== 'undefined') {
   document.getElementById('export-excel')?.addEventListener('click', async ()=>{
     await exportExcel();
   });
+  document.getElementById('voter-search')?.addEventListener('input', renderVoterList);
+  document.getElementById('voter-filter')?.addEventListener('change', renderVoterList);
+  document.getElementById('voter-kelas')?.addEventListener('change', renderVoterList);
+  document.getElementById('voter-export')?.addEventListener('click', exportVoterList);
   document.getElementById('csv-file')?.addEventListener('change', async e=>{
     try {
       const text=await e.target.files[0].text();
