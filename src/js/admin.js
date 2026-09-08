@@ -18,6 +18,14 @@ export async function toggleElection(isOpen) {
   if (error) throw error;
   return { isOpen };
 }
+export async function resetVotingResults() {
+  const { error: delErr } = await supabase.from('votes').delete().neq('id', 0);
+  if (delErr) throw delErr;
+  const { error: updErr } = await supabase.from('voters').update({ has_voted: false, voted_at: null }).eq('has_voted', true);
+  if (updErr) throw updErr;
+  await supabase.from('audit_log').insert({ action: 'reset_voting', meta: { at: new Date().toISOString() } });
+  return { ok: true };
+}
 export async function getParticipation() {
   const { data } = await supabase.from('voters').select('nis, nama, kelas, has_voted, voted_at');
   const safe = data || [];
@@ -359,6 +367,34 @@ if (typeof document !== 'undefined') {
   });
   document.getElementById('export-excel')?.addEventListener('click', async ()=>{
     await exportExcel();
+  });
+  const resetDlg = document.getElementById('reset-dialog');
+  const resetInput = document.getElementById('reset-confirm-input');
+  const resetYes = document.getElementById('reset-yes');
+  document.getElementById('btn-reset')?.addEventListener('click', ()=>{
+    if (resetInput) resetInput.value = '';
+    if (resetYes) resetYes.disabled = true;
+    resetDlg?.showModal();
+  });
+  resetInput?.addEventListener('input', ()=>{
+    if (resetYes) resetYes.disabled = resetInput.value.trim() !== 'RESET';
+  });
+  document.getElementById('reset-cancel')?.addEventListener('click', ()=>resetDlg?.close());
+  resetYes?.addEventListener('click', async ()=>{
+    resetYes.disabled = true;
+    resetYes.textContent = 'Mereset...';
+    try {
+      await resetVotingResults();
+      resetDlg?.close();
+      alert('Hasil voting berhasil direset. Semua siswa kembali ke status belum memilih.');
+      await refresh();
+    } catch(e) {
+      alert('Gagal reset: ' + (e.message || e));
+    } finally {
+      resetYes.disabled = true;
+      resetYes.textContent = 'Ya, Reset';
+      if (resetInput) resetInput.value = '';
+    }
   });
   document.getElementById('voter-search')?.addEventListener('input', renderVoterList);
   document.getElementById('voter-filter')?.addEventListener('change', renderVoterList);
