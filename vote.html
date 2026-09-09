@@ -77,10 +77,21 @@
 
     <!-- Step 4: Success -->
     <div id="step-success" class="max-w-md mx-auto mt-12 animate-fade-in hidden">
-      <div class="card p-8 text-center">
-        <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 animate-scale-in">
+      <div class="card p-8 text-center relative overflow-hidden">
+        <div class="confetti" aria-hidden="true">
+          <span style="left:8%;animation-delay:0s"></span>
+          <span style="left:18%;animation-delay:.3s"></span>
+          <span style="left:28%;animation-delay:.6s"></span>
+          <span style="left:38%;animation-delay:.15s"></span>
+          <span style="left:48%;animation-delay:.45s"></span>
+          <span style="left:58%;animation-delay:.75s"></span>
+          <span style="left:68%;animation-delay:.25s"></span>
+          <span style="left:78%;animation-delay:.55s"></span>
+          <span style="left:88%;animation-delay:.9s"></span>
+        </div>
+        <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 animate-pop">
           <svg class="w-10 h-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            <path class="check-draw" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
         <h2 class="text-xl font-bold text-slate-800 mb-2">Vote Berhasil!</h2>

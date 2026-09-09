@@ -62,11 +62,11 @@ async function showCandidates(nis, voter) {
   const cands = await loadCandidates();
   voterInfo.textContent = `${voter.nama} — ${voter.kelas}`;
 
-  grid.innerHTML = cands.map(c => `
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-all duration-200 group">
-      <div class="relative">
-        <img src="${c.foto_url || '/src/assets/placeholder.webp'}" class="w-full h-48 object-cover" loading="lazy" />
-        <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-brand-700 font-extrabold text-lg px-3 py-1 rounded-xl shadow-sm">
+  grid.innerHTML = cands.map((c, i) => `
+    <div class="cand-card animate-card-in bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-card-hover group" style="animation-delay:${i * 90}ms">
+      <div class="relative overflow-hidden">
+        <img src="${c.foto_url || '/src/assets/placeholder.webp'}" class="cand-img w-full h-48 object-cover" loading="lazy" />
+        <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-brand-700 font-extrabold text-lg px-3 py-1 rounded-xl shadow-sm animate-pop">
           0${c.nomor_urut}
         </div>
       </div>
@@ -74,7 +74,7 @@ async function showCandidates(nis, voter) {
         <h3 class="font-bold text-slate-800 text-sm">${c.nama_ketua}</h3>
         <p class="text-xs text-slate-400 mb-1">& ${c.nama_wakil}</p>
         ${c.visi ? `<p class="text-xs text-slate-500 line-clamp-2 mb-3">${c.visi}</p>` : ''}
-        <button data-candidate="${c.id}" data-nomor="${c.nomor_urut}" data-nama="${c.nama_ketua} & ${c.nama_wakil}" class="choose w-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+        <button data-candidate="${c.id}" data-nomor="${c.nomor_urut}" data-nama="${c.nama_ketua} & ${c.nama_wakil}" class="choose btn-shine w-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
           Pilih
         </button>
       </div>

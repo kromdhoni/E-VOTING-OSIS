@@ -36,6 +36,9 @@ export default {
         'slide-up': 'slideUp 0.5s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
         'scale-in': 'scaleIn 0.3s ease-out',
+        'card-in': 'cardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'pop': 'pop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'confetti-fall': 'confettiFall 2.2s ease-in infinite',
         'float': 'float 3s ease-in-out infinite',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'shimmer': 'shimmer 2s linear infinite',
@@ -56,6 +59,18 @@ export default {
         scaleIn: {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        cardIn: {
+          '0%': { opacity: '0', transform: 'translateY(24px) scale(0.97)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        pop: {
+          '0%': { opacity: '0', transform: 'scale(0.6)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        confettiFall: {
+          '0%': { opacity: '1', transform: 'translateY(-10px) rotate(0deg)' },
+          '100%': { opacity: '0', transform: 'translateY(120px) rotate(360deg)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },

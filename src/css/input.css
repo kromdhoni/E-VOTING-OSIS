@@ -87,9 +87,82 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type=number] { -moz-appearance: textfield; }
 
+/* Candidate cards */
+.cand-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.cand-card:hover {
+  transform: translateY(-6px);
+}
+.cand-card .cand-img {
+  transition: transform 0.4s ease;
+}
+.cand-card:hover .cand-img {
+  transform: scale(1.06);
+}
+
+/* Shine sweep on Pilih button */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.5), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+}
+.btn-shine:hover::after {
+  left: 130%;
+}
+
+/* Animated success check */
+.check-draw {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: checkDraw 0.6s 0.15s ease-out forwards;
+}
+@keyframes checkDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Confetti pieces */
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.confetti span {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confettiFall 2.2s ease-in infinite;
+}
+.confetti span:nth-child(3n) { background: #10b981; }
+.confetti span:nth-child(3n+1) { background: #f59e0b; }
+.confetti span:nth-child(3n+2) { background: #3b82f6; }
+
 /* Disabled button style */
 button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
   pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cand-card,
+  .confetti span,
+  .check-draw {
+    animation: none !important;
+    transition: none !important;
+  }
 }
