@@ -300,7 +300,7 @@ if (typeof document !== 'undefined') {
     const scrollPos = list.scrollTop;
     list.innerHTML = cands.map(c => `
       <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl group">
-        <img src="${c.foto_url || '/src/assets/placeholder.webp'}" class="w-12 h-12 rounded-lg object-cover border border-slate-100"/>
+        <img src="${c.foto_url || './logo-osis.png'}" class="w-12 h-12 rounded-lg object-cover border border-slate-100"/>
         <div class="flex-1 min-w-0">
           <div class="font-bold text-sm text-slate-800">0${c.nomor_urut} — ${c.nama_ketua} & ${c.nama_wakil}</div>
           <div class="text-xs text-slate-400 truncate">${c.visi || '-'}</div>

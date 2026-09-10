@@ -65,7 +65,7 @@ async function showCandidates(nis, voter) {
   grid.innerHTML = cands.map((c, i) => `
     <div class="cand-card animate-card-in bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-card-hover group" style="animation-delay:${i * 90}ms">
       <div class="relative overflow-hidden">
-        <img src="${c.foto_url || '/src/assets/placeholder.webp'}" class="cand-img w-full h-48 object-cover" loading="lazy" />
+        <img src="${c.foto_url || './logo-osis.png'}" class="cand-img w-full h-48 object-cover" loading="lazy" />
         <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-brand-700 font-extrabold text-lg px-3 py-1 rounded-xl shadow-sm animate-pop">
           0${c.nomor_urut}
         </div>
