@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="theme-color" content="#064e3b"/>
+  <link rel="icon" type="image/png" href="./logo-sekolah.png"/>
+  <title>Laporan Hasil — E-Voting OSIS</title>
+  <link href="/src/css/input.css" rel="stylesheet"/>
+  <style>
+    @media print {
+      body { background: #fff !important; }
+      .no-print { display: none !important; }
+      .print-sheet { box-shadow: none !important; border: none !important; border-radius: 0 !important; }
+      .print-avoid-break { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 py-6">
+
+    <!-- Toolbar -->
+    <div class="no-print flex flex-wrap items-center gap-2 mb-5">
+      <a href="admin.html" class="btn-secondary text-sm">← Dashboard Admin</a>
+      <button id="btn-refresh-laporan" class="btn-secondary text-sm">Muat Ulang Data</button>
+      <button onclick="window.print()" class="btn-primary text-sm">Cetak / Simpan PDF</button>
+    </div>
+
+    <!-- Gate -->
+    <div id="gate" class="max-w-md mx-auto">
+      <div class="bg-white rounded-2xl shadow-elevated border border-slate-100 p-8 text-center">
+        <div class="flex items-center justify-center gap-3 mb-5">
+          <img src="./logo-sekolah.png" alt="Logo SMK YPM 14" class="w-14 h-14 rounded-xl object-contain bg-white shadow"/>
+          <img src="./logo-osis.png" alt="Logo OSIS" class="w-14 h-14 rounded-full object-cover bg-white shadow"/>
+        </div>
+        <h2 class="font-bold text-slate-800">Laporan Hasil Pemilihan</h2>
+        <p class="text-xs text-slate-400 mb-5">Masukkan password admin untuk membuka laporan</p>
+        <div class="space-y-3">
+          <input id="gate-pass" type="password" placeholder="Password admin" class="input-field text-center"/>
+          <button id="gate-login" class="btn-primary w-full">Buka Laporan</button>
+          <p id="gate-error" class="text-red-500 text-sm hidden"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Locked -->
+    <div id="locked" class="max-w-md mx-auto hidden">
+      <div class="bg-white rounded-2xl shadow-card border border-amber-200 p-8 text-center">
+        <div class="text-4xl mb-3">🔒</div>
+        <h2 class="font-bold text-slate-800 mb-1">Hasil Masih Terkunci</h2>
+        <p class="text-sm text-slate-500">Voting masih dibuka. Tutup voting di dashboard admin untuk membuka laporan.</p>
+      </div>
+    </div>
+
+    <!-- Report -->
+    <div id="report" class="hidden">
+      <div class="print-sheet bg-white rounded-2xl shadow-card border border-slate-100 p-6 sm:p-10">
+        <!-- Kop -->
+        <div class="flex items-center justify-center gap-4 pb-5 border-b-2 border-slate-800">
+          <img src="./logo-sekolah.png" alt="Logo SMK YPM 14" class="w-16 h-16 sm:w-20 sm:h-20 object-contain"/>
+          <div class="text-center">
+            <p class="text-xs sm:text-sm font-semibold text-slate-500 tracking-wide">SMK YPM 14 SUMOBITO — OSIS</p>
+            <h1 class="text-lg sm:text-2xl font-extrabold text-slate-800">LAPORAN HASIL PEMUNGUTAN SUARA</h1>
+            <p class="text-xs sm:text-sm text-slate-500">Pemilihan Ketua & Wakil Ketua OSIS Tahun 2026</p>
+          </div>
+          <img src="./logo-osis.png" alt="Logo OSIS" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover"/>
+        </div>
+
+        <!-- Meta -->
+        <div id="lap-meta" class="mt-5 text-sm text-slate-600"></div>
+
+        <!-- Stats -->
+        <div id="lap-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5"></div>
+
+        <!-- Winner -->
+        <div id="lap-winner" class="mt-6"></div>
+
+        <!-- Per candidate -->
+        <h2 class="font-bold text-slate-800 mt-8 mb-3">Perolehan Suara Tiap Pasangan Calon</h2>
+        <div id="lap-candidates" class="space-y-3"></div>
+
+        <!-- Per kelas -->
+        <h2 class="font-bold text-slate-800 mt-8 mb-3">Tingkat Partisipasi per Kelas</h2>
+        <div id="lap-kelas" class="overflow-x-auto rounded-xl border border-slate-100"></div>
+
+        <!-- Signature -->
+        <div class="grid grid-cols-2 gap-6 mt-10 text-sm text-slate-700">
+          <div class="text-center">
+            <p>Mengetahui,</p>
+            <p class="font-semibold">Kepala Sekolah</p>
+            <div class="h-20"></div>
+            <p class="font-semibold underline underline-offset-4">( ............................................ )</p>
+            <p class="text-xs text-slate-400">NIP. ........................................</p>
+          </div>
+          <div class="text-center">
+            <p id="lap-place">Sumobito, ........................................</p>
+            <p class="font-semibold">Ketua Panitia</p>
+            <div class="h-20"></div>
+            <p class="font-semibold underline underline-offset-4">( ............................................ )</p>
+          </div>
+        </div>
+      </div>
+      <p class="no-print text-center text-xs text-slate-400 mt-4">Data diperbarui otomatis setiap 15 detik &bull; <span id="lap-updated"></span></p>
+    </div>
+  </div>
+  <script type="module" src="/src/js/laporan.js"></script>
+</body>
+</html>
